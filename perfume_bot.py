@@ -132,14 +132,14 @@ class PerfumeBot:
             self.stats['generate'] += 1
             return dialogue_response
 
-        if intent and confidence > 0.3:
+        if intent and confidence > 0.1:
             return self._handle_intent(intent, text, sentiment)
 
         if topic and sentiment['label'] != 'negative':
             return self._handle_topic(topic, text, sentiment)
 
         if sentiment['label'] == 'negative' and sentiment['confidence'] > 0.5:
-            return self._handle_negative_sentiment(text, sentiment)
+            return self.sentiment_analyzer.get_emotion_response(sentiment)
 
         self.stats['failure'] += 1
         return random.choice(self.config.failure_phrases)
@@ -155,8 +155,7 @@ class PerfumeBot:
         responses = intent_data.get('responses', [])
         if responses:
             base_response = random.choice(responses)
-            if sentiment['label'] == 'positive':
-                return base_response + " " + self._get_positive_addition()
+            base_response + " " + self.sentiment_analyzer.get_emotion_response(sentiment)
             return base_response
 
         return random.choice(self.config.failure_phrases)
@@ -366,16 +365,4 @@ class PerfumeBot:
 
         return "Интересная тема! Расскажите подробнее "
 
-    def _handle_negative_sentiment(self, text: str, sentiment: Dict) -> str:
-        responses = [
-            "Понимаю ваши сомнения. Давайте найдем то, что вам точно понравится! ",
-            "Не переживайте! У нас есть ароматы на любой вкус! ",
-            "Позвольте предложить вам что-то особенное! "        ]
-        return random.choice(responses)
 
-    def _get_positive_addition(self) -> str:
-        additions = [
-            "Вы точно не пожалеете!",
-            "Это будет отличный выбор!", "Уверен, вам понравится!"
-        ]
-        return random.choice(additions)
